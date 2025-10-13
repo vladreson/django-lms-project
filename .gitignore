@@ -24,3 +24,17 @@ media/
 .DS_Store
 *.log
 local_settings.py
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Environment variables
+.env
+.env.local
+.env.prod
+
+# Database
+*.db
