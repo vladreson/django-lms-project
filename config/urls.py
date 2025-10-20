@@ -5,9 +5,12 @@ from django.conf.urls.static import static
 from django.http import JsonResponse
 from rest_framework.routers import DefaultRouter
 from materials.views import CourseViewSet
+from users.views import UserViewSet, PaymentViewSet
 
 router = DefaultRouter()
 router.register(r'courses', CourseViewSet)
+router.register(r'users', UserViewSet)
+router.register(r'payments', PaymentViewSet)
 
 def api_root(request):
     return JsonResponse({
@@ -15,6 +18,8 @@ def api_root(request):
         'endpoints': {
             'courses': '/api/courses/',
             'lessons': '/api/lessons/',
+            'users': '/api/users/',
+            'payments': '/api/payments/',
             'admin': '/admin/'
         }
     })
