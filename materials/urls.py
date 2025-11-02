@@ -1,14 +1,12 @@
-from django.urls import path
-from .views import (
-    LessonListCreateAPIView,
-    LessonRetrieveAPIView,
-    LessonUpdateAPIView,
-    LessonDestroyAPIView
-)
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import LessonListCreateAPIView, LessonRetrieveUpdateDestroyAPIView, SubscriptionViewSet
+
+router = DefaultRouter()
+router.register(r'subscriptions', SubscriptionViewSet, basename='subscription')
 
 urlpatterns = [
-    path('', LessonListCreateAPIView.as_view(), name='lesson-list'),
-    path('<int:pk>/', LessonRetrieveAPIView.as_view(), name='lesson-detail'),
-    path('<int:pk>/update/', LessonUpdateAPIView.as_view(), name='lesson-update'),
-    path('<int:pk>/delete/', LessonDestroyAPIView.as_view(), name='lesson-delete'),
+    path('', LessonListCreateAPIView.as_view(), name='lesson-list-create'),
+    path('<int:pk>/', LessonRetrieveUpdateDestroyAPIView.as_view(), name='lesson-detail'),
+    path('', include(router.urls)),
 ]
