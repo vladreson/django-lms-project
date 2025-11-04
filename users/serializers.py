@@ -3,6 +3,16 @@ from django.contrib.auth.password_validation import validate_password
 from .models import Payment, User
 
 
+class PaymentCreateSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для создания платежей
+    """
+
+    class Meta:
+        model = Payment
+        fields = ['paid_course', 'paid_lesson', 'amount', 'payment_method']
+
+
 class UserRegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(
         write_only=True,
@@ -55,5 +65,6 @@ class PaymentSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'user', 'user_email', 'payment_date',
             'paid_course', 'course_title', 'paid_lesson', 'lesson_title',
-            'amount', 'payment_method'
+            'amount', 'payment_method', 'payment_status',
+            'stripe_session_id', 'stripe_payment_intent_id'
         ]

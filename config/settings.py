@@ -25,6 +25,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_filters',
     'users',
+    'drf_yasg',
     'materials',
 ]
 
@@ -124,3 +125,24 @@ if 'test' in sys.argv:
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': ':memory:',
     }
+
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'Bearer': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header'
+        }
+    },
+    'USE_SESSION_AUTH': False,
+}
+
+REDOC_SETTINGS = {
+    'LAZY_RENDERING': False,
+}
+
+STRIPE_PUBLISHABLE_KEY = os.getenv('STRIPE_PUBLISHABLE_KEY', '')
+STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY', '')
+STRIPE_WEBHOOK_SECRET = os.getenv('STRIPE_WEBHOOK_SECRET', '')
+
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:3000')
