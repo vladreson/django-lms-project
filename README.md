@@ -116,3 +116,23 @@ text
 - `GET /api/payments/success/` - обработка успешной оплаты
 - `GET /api/payments/cancel/` - обработка отмены оплаты
 - `GET /api/payments/{id}/status/` - проверка статуса платежа
+
+## Celery и Фоновые Задачи
+
+### Настройка
+
+1. Убедитесь, что Redis запущен:
+```bash
+redis-server
+```
+
+2. Запустите Celery worker:
+
+```bash
+celery -A config worker --loglevel=info --pool=solo
+Запустите Celery beat (для периодических задач):
+```
+
+```bash
+celery -A config beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+```

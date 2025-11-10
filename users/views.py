@@ -14,6 +14,7 @@ from .models import Payment, User
 from .serializers import PaymentSerializer, UserSerializer, UserRegisterSerializer, PaymentCreateSerializer
 from .filters import PaymentFilter
 from .services.stripe_service import StripeService
+from .tasks import send_welcome_email
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -46,13 +47,19 @@ class UserRegisterAPIView(generics.CreateAPIView):
         }
     )
     def post(self, request, *args, **kwargs):
-        return super().post(request, *args, **kwargs)
+        response = super().post(request, *args, **kwargs)
+
+        # Если пользователь успешно создан, отправляем приветственное письмо
+        if response.status_code == status.HTTP_201_CREATED:
+            user_id = response.data.get('user', {}).get('id')
+            if user_id:
+                send_welcome_email.delay(user_id)
+
+        return response
 
 
+# Остальные классы представлений остаются без изменений
 class PaymentViewSet(viewsets.ModelViewSet):
-    """
-    ViewSet для управления платежами.
-    """
     queryset = Payment.objects.all()
     serializer_class = PaymentSerializer
     filter_backends = (filters.DjangoFilterBackend,)
@@ -82,9 +89,6 @@ class PaymentViewSet(viewsets.ModelViewSet):
     )
     @action(detail=False, methods=['post'], url_path='create-stripe-payment')
     def create_stripe_payment(self, request):
-        """
-        Создание платежа через Stripe для курса
-        """
         from materials.models import Course
 
         course_id = request.data.get('course_id')
@@ -104,21 +108,18 @@ class PaymentViewSet(viewsets.ModelViewSet):
             )
 
         try:
-            # Получаем базовый URL из настроек или из запроса
             base_url = getattr(settings, 'FRONTEND_URL', request.build_absolute_uri('/'))
 
-            # Создаем платеж в Stripe
             stripe_data = StripeService.create_payment_for_course(
                 course=course,
                 user=request.user,
                 base_url=base_url
             )
 
-            # Создаем запись о платеже в нашей системе
             payment = Payment.objects.create(
                 user=request.user,
                 paid_course=course,
-                amount=course.price if hasattr(course, 'price') else 1000,  # Заглушка цены
+                amount=course.price if hasattr(course, 'price') else 1000,
                 payment_method='stripe',
                 payment_status='pending',
                 stripe_product_id=stripe_data['product_id'],
@@ -141,9 +142,6 @@ class PaymentViewSet(viewsets.ModelViewSet):
 
 
 class PaymentSuccessAPIView(APIView):
-    """
-    Обработка успешной оплаты
-    """
     permission_classes = [AllowAny]
 
     def get(self, request):
@@ -156,11 +154,9 @@ class PaymentSuccessAPIView(APIView):
             )
 
         try:
-            # Получаем информацию о сессии из Stripe
             session = StripeService.retrieve_session(session_id)
 
             if session.payment_status == 'paid':
-                # Находим платеж в нашей системе и обновляем статус
                 try:
                     payment = Payment.objects.get(stripe_session_id=session_id)
                     payment.payment_status = 'succeeded'
@@ -191,9 +187,6 @@ class PaymentSuccessAPIView(APIView):
 
 
 class PaymentCancelAPIView(APIView):
-    """
-    Обработка отмены оплаты
-    """
     permission_classes = [AllowAny]
 
     def get(self, request):
@@ -203,9 +196,6 @@ class PaymentCancelAPIView(APIView):
 
 
 class CheckPaymentStatusAPIView(APIView):
-    """
-    Проверка статуса платежа
-    """
     permission_classes = [IsAuthenticated]
 
     def get(self, request, payment_id):
@@ -213,7 +203,6 @@ class CheckPaymentStatusAPIView(APIView):
             payment = Payment.objects.get(id=payment_id, user=request.user)
 
             if payment.payment_method == 'stripe' and payment.stripe_session_id:
-                # Обновляем статус из Stripe
                 session = StripeService.retrieve_session(payment.stripe_session_id)
 
                 if session.payment_status == 'paid' and payment.payment_status != 'succeeded':

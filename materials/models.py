@@ -14,6 +14,14 @@ class Course(models.Model):
         null=True,
         blank=True
     )
+    price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+        verbose_name='Цена'
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='Дата обновления')
 
     def __str__(self):
         return self.title
@@ -21,7 +29,7 @@ class Course(models.Model):
     class Meta:
         verbose_name = 'Курс'
         verbose_name_plural = 'Курсы'
-        ordering = ['title']  # Добавляем сортировку по умолчанию
+        ordering = ['title']
 
 
 class Lesson(models.Model):
@@ -38,6 +46,8 @@ class Lesson(models.Model):
         null=True,
         blank=True
     )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='Дата обновления')
 
     def __str__(self):
         return self.title
@@ -45,7 +55,7 @@ class Lesson(models.Model):
     class Meta:
         verbose_name = 'Урок'
         verbose_name_plural = 'Уроки'
-        ordering = ['title']  # Добавляем сортировку по умолчанию
+        ordering = ['title']
 
 
 class Subscription(models.Model):
@@ -69,8 +79,8 @@ class Subscription(models.Model):
     class Meta:
         verbose_name = 'Подписка'
         verbose_name_plural = 'Подписки'
-        unique_together = ['user', 'course']  # Одна подписка на курс для пользователя
-        ordering = ['-subscribed_at']  # Сортировка по дате подписки
+        unique_together = ['user', 'course']
+        ordering = ['-subscribed_at']
 
     def __str__(self):
         return f"{self.user.email} подписан на {self.course.title}"
