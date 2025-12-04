@@ -136,3 +136,12 @@ celery -A config worker --loglevel=info --pool=solo
 ```bash
 celery -A config beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
 ```
+
+## Запуск с Docker Compose
+
+1. Убедитесь, что у вас установлены Docker и Docker Compose
+2. Создайте файл `.env` (опционально, можно указать переменные прямо в docker-compose.yaml)
+3. Запустите:
+```bash
+   docker-compose up -d
+```
